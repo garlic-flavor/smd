@@ -54,7 +54,6 @@ import sworks.win32.gdi;
 import sworks.win32.single_window;
 import sworks.win32.svgr;
 import sworks.svg;
-import core.time : Duration;
 debug import std.stdio;
 
 class SMD
@@ -116,9 +115,7 @@ class SMD
         bmp.stretchTo(dc, rc);
     }
 
-
-    import core.time : Duration;
-    void update(Duration past)
+    void update(size_t past)
     {
         void _update(int cx, int cy, float s)
         {
@@ -130,16 +127,15 @@ class SMD
             wnd.redraw;
         }
 
-        auto pastms = past.total!"msecs";
-        if      (pastms < FADE_DURATION)
+        if      (past < FADE_DURATION)
         {
-            auto r = (cast(float)(pastms)) / (cast(float)(FADE_DURATION));
+            auto r = (cast(float)(past)) / (cast(float)(FADE_DURATION));
             _update(cast(int)(size.cx/2 * r), cast(int)(size.cy/2 * r),
                     MIN_SIZE + ((MAX_SIZE - MIN_SIZE) * r));
         }
-        else if (pastms < FADE_DURATION * 2)
+        else if (past < FADE_DURATION * 2)
         {
-            auto r = (cast(float)(pastms - FADE_DURATION))
+            auto r = (cast(float)(past - FADE_DURATION))
                 / (cast(float)(FADE_DURATION));
             _update(cast(int)(size.cx/2 * (1 + r)),
                     cast(int)(size.cy/2 * (1 + r)),
@@ -151,25 +147,24 @@ class SMD
 
 void main(string[] args)
 {
-    import core.time : dur;
+    import core.time : msecs;
     import std.datetime : Clock;
     import std.utf : toUTF16z;
 
-    enum SPF = dur!"msecs"(33);
+    enum SPF = 33.msecs;
     try
     {
         auto smd = new SMD;
-        MSG msg;
         auto start = Clock.currTime;
         auto next = start + SPF;
-        int sleep;
-        for (; msg.message != WM_QUIT;)
+        long sleep;
+        for (MSG msg; msg.message != WM_QUIT;)
         {
-            smd.update(next - start);
+            smd.update(cast(size_t)(next - start).total!"msecs");
             while(PeekMessage(&msg, smd.wnd.ptr, 0, 0, PM_REMOVE))
                 DispatchMessage(&msg);
-            (next - Clock.currTime).split!"msecs"(sleep);
-            if (0 < sleep) Sleep(sleep);
+            sleep = (next - Clock.currTime).total!"msecs";
+            if (0 < sleep) Sleep(cast(uint)sleep);
             next += SPF;
         }
     }
