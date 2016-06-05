@@ -1,0 +1,4 @@
+#include<windows.h>
+
+#define IDC_ICON 100
+IDC_ICON ICON DISCARDABLE "img\d-chan.ico"
