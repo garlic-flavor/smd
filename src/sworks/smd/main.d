@@ -1,6 +1,6 @@
 /** Super Mars D-chan
- * Version:    0.0001(dmd2.071.0)
- * Date:       2016-Jun-05 23:26:30
+ * Version:    0.0002(dmd2.071.0)
+ * Date:       2016-Jun-06 02:50:35
  * License:    CC0
  * Authors:    KUMA
 
@@ -32,12 +32,13 @@ $(LI Windows10 x64 + dmd2.071.0 + Visual Studio 2015)
 
 ワナビー:
 $(UL
-$(LI WS_EX_LAYERED とかすっかり忘れてた。書き直そう。)
+$(LI xxx)
 )
 
 
 履歴:
 $(UL
+$(LI 2016-06-05 ver.0.0002(dmd2.071.0) WS_EX_LAYERED使うように。)
 $(LI 2016-06-05 ver.0.0001(dmd2.071.0) とりあえず。)
 )
  */
@@ -56,92 +57,6 @@ import sworks.svg;
 import core.time : Duration;
 debug import std.stdio;
 
-struct WindowContour
-{
-    POINT[] _points;
-    INT[] _polyCounts;
-
-    @property @nogc pure nothrow
-    const(POINT)* pointPtr() const { return _points.ptr; }
-
-    @property @nogc pure nothrow
-    const(INT)* countPtr() const { return _polyCounts.ptr; }
-
-    @property @nogc pure nothrow
-    size_t count() const { return _polyCounts.length; }
-
-    this(POINT[][] src)
-    {
-        import std.array : join;
-        _points = src.join;
-        _polyCounts = new INT[src.length];
-        for (size_t i = 0; i < src.length; ++i)
-            _polyCounts[i] = cast(INT)src[i].length;
-    }
-
-    WindowContour sameCapacityContour() const
-    {
-        WindowContour wc;
-        wc._points = new POINT[_points.length];
-        wc._polyCounts = _polyCounts.dup;
-        return wc;
-    }
-
-    bool isSameCapacity(in ref WindowContour dst) const
-    {
-        return _points.length == dst._points.length &&
-            _polyCounts == dst._polyCounts;
-    }
-
-
-    void stretchedCopy(ref WindowContour dst, int x, int y, float r)
-    {
-        assert(isSameCapacity(dst));
-        for (size_t i = 0; i < _points.length; ++i)
-        {
-            dst._points[i] = POINT(cast(int)(x + _points[i].x * r),
-                                   cast(int)(y + _points[i].y * r));
-        }
-    }
-
-}
-
-
-POINT[] jaggyLine(Vector2f a, Vector2f b)
-{
-    import std.math : floor, abs, ceil;
-    int x1 = cast(int)a.x.floor;
-    int y1 = cast(int)a.y.ceil;
-    int x2 = cast(int)b.x.floor;
-    int y2 = cast(int)b.y.ceil;
-    int count = (x2 - x1).abs;
-    if (0 == count) return [POINT(x1, y1), POINT(x2, y2)];
-
-    int deltaX = (x2 - x1) / count;
-    float deltaY = (cast(float)(y2 - y1)) / (cast(float)count);
-
-    auto r = new POINT[count*2+1];
-    r[0] = POINT(x1, y1);
-
-    for ( int i = 0; i < count; ++i)
-    {
-        int y = y1 + cast(int)(deltaY * (i+1)).ceil;
-        int x = x1 + deltaX * (i+1);
-
-        r[i*2+1] = POINT(x, r[i*2].y);
-        r[i*2+2] = POINT(x, y);
-    }
-    return r;
-}
-
-POINT[] jaggyLine(Vector2f[] poly)
-{
-    import std.array : Appender;
-    Appender!(POINT[]) app;
-    for (size_t i = 1; i < poly.length; ++i)
-        app.put(jaggyLine(poly[i-1], poly[i]));
-    return app.data;
-}
 
 int toMsecs(Duration d)
 {
@@ -153,19 +68,19 @@ int toMsecs(Duration d)
 
 class SMD
 { mixin SingleWindowMix!() SWM;
-    import core.time : seconds;
 
-    enum WIDTH = 64;
+    enum WIDTH = 256;
     enum d_chan = import("d-chan.svg").toCache.toSVG(WIDTH).toPolyLines;
     enum HEIGHT = cast(int)(d_chan.height);
+    enum BG_COLOR = RGB(255, 255, 0);
 
-    enum MIN_SIZE = 0.5f;
-    enum MAX_SIZE = 10f;
+    enum MIN_SIZE = 0.1f;
+    enum MAX_SIZE = 3f;
     enum FADE_DURATION = 2000;
 
-    WindowContour src, resized;
     BitmapDc bmp;
     SIZE size;
+    HBRUSH bgBrush;
 
     POINT dPos;
     float dSize;
@@ -173,31 +88,29 @@ class SMD
     this()
     {
         SWM.ready.regist;
-        SWM.create(WS_POPUP, "SMD"w.ptr);
+        SWM.create(WS_POPUP, "SMD"w.ptr, Wnd(null), null, WS_EX_LAYERED);
 
         wnd.show(SW_SHOWMAXIMIZED | SW_HIDE);
         wnd.toTop;
         size = wnd.size;
 
-        bmp = wnd.dc(d=>BitmapDc(d.ptr, rasterize!"black"(d_chan, d, WIDTH,
-                                                          HEIGHT)));
-        POINT[][] contourSrc;
-        foreach (lines; d_chan.lines)
-        {
-            if (lines.haveClass("contour"))
-            {
-                foreach (poly; lines.pos)
-                    contourSrc ~= poly.jaggyLine;
-            }
-        }
-        src = WindowContour(contourSrc);
-        resized = src.sameCapacityContour;
-
         wnd.show;
+    }
+
+    LRESULT wm_create(Msg msg)
+    {
+        bgBrush = CreateSolidBrush(BG_COLOR);
+        bmp = wnd.dc(d=>BitmapDc(d.ptr, rasterize(d_chan, d, bgBrush,
+                                                  WIDTH, HEIGHT)));
+        SetLayeredWindowAttributes(wnd.ptr, BG_COLOR, 0, LWA_COLORKEY);
+
+        return 0;
     }
 
     LRESULT wm_destroy(Msg)
     {
+        if (bgBrush) DeleteObject(bgBrush);
+        bgBrush = null;
         bmp.clear;
         PostQuitMessage(0);
         return 0;
@@ -205,7 +118,7 @@ class SMD
 
     void wm_paint(Dc dc, ref PAINTSTRUCT ps)
     {
-        dc.fill!"white"(ps.rcPaint);
+        dc.fill(ps.rcPaint, bgBrush);
         auto rc = RECT(dPos.x, dPos.y,
                        cast(int)(dPos.x + WIDTH * dSize),
                        cast(int)(dPos.y + HEIGHT * dSize));
@@ -223,12 +136,7 @@ class SMD
             auto h2 = cast(int)(HEIGHT * s) / 2;
             dPos = POINT(cx - w2, cy - h2);
 
-            src.stretchedCopy(resized, dPos.x, dPos.y, dSize);
-            auto rgn = CreatePolyPolygonRgn(resized.pointPtr, resized.countPtr,
-                                            cast(int)resized.count, ALTERNATE);
-            SetWindowRgn(wnd.ptr, rgn, false);
             wnd.redraw;
-            DeleteObject(rgn);
         }
 
         auto pastms = past.toMsecs;
@@ -256,7 +164,7 @@ void main(string[] args)
     import std.datetime : Clock;
     import std.utf : toUTF16z;
 
-    enum SPF = dur!"msecs"(100);
+    enum SPF = dur!"msecs"(33);
     try
     {
         auto smd = new SMD;

@@ -1,5 +1,5 @@
 /** SVGなんちゃってラスタライザ Win32GDI実装。
- * Date:       2016-Jun-05 18:14:14
+ * Date:       2016-Jun-06 02:34:10
  * Authors:
  * License:
 **/
@@ -32,6 +32,29 @@ HBITMAP rasterize(string BG)(SVGPL pl, Dc dc, int w, int h, int sample = 1)
         return tdc.dumpClear;
     }
 }
+
+///
+HBITMAP rasterize(SVGPL pl, Dc dc, HBRUSH bg, int w, int h, int sample = 1)
+{
+    auto ww = w * sample;
+    auto hh = h * sample;
+
+    auto src = BitmapDc(dc.ptr, ww, hh);
+    src.fill(0, 0, ww, hh, bg);
+    foreach (ref one; pl.lines)
+        draw(src, one, 0, 0, ww, hh);
+
+    if (sample == 1) return src.dumpClear;
+    else
+    {
+        auto tdc = BitmapDc(dc.ptr, w, h);
+        SetStretchBltMode(tdc.ptr, HALFTONE);
+        StretchBlt(tdc.ptr, 0, 0, w, h, src.ptr, 0, 0, ww, hh, SRCCOPY);
+        src.clear;
+        return tdc.dumpClear;
+    }
+}
+
 
 HBITMAP rasterizeAlpha(SVGPL pl, Dc dc, int w, int h, int sample = 1)
 {

@@ -2,7 +2,7 @@
 TARGET = smd.exe
 AUTHORS =
 LICENSE =
-VERSION = 0.0001
+VERSION = 0.0002
 
 MAKEFILE = Makefile
 DC = dmd
@@ -63,13 +63,13 @@ ddoc :
 show :
 	@echo ROOT = src\sworks\smd\main.d
 	@echo TARGET = $(TARGET)
-	@echo VERSION = 0.0001
+	@echo VERSION = 0.0002
 run :
 	$(TARGET) $(FLAG)
 edit :
 	emacs $(TO_COMPILE) $(RC_FILE)
 remake :
-	amm -m32mscoff -version=Unicode -version=WindowsVista -Jinclude smd.exe .\src\sworks\smd\main.d v=0.0001 src\sworks\smd\resource.rc $(FLAG)
+	amm -m32mscoff -version=Unicode -version=WindowsVista -Jinclude smd.exe .\src\sworks\smd\main.d v=0.0002 src\sworks\smd\resource.rc $(FLAG)
 
 debug :
 	ddbg $(TARGET)
