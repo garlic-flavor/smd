@@ -16,9 +16,9 @@ dmd と打ち間違えて smd と入力してしまった時に、スーパー�
 
 ## 謝辞:
 - smd は D言語で書かれています。 [Digital Mars D Programming Language(http://dlang.org/)](http://dlang.org/)
-- 事の始まりは、 http://echo.2ch.net/test/read.cgi/tech/1422155249/581です。
-- 元ネタは、http://qiita.com/mattn/items/b7889e3c036b408ae8bdです。
-- 大元ネタは、https://ja.wikipedia.org/wiki/Sl_(UNIX)です。
+- 事の始まりは、 http://echo.2ch.net/test/read.cgi/tech/1422155249/581 です。
+- 元ネタは、http://qiita.com/mattn/items/b7889e3c036b408ae8bd です。
+- 大元ネタは、https://ja.wikipedia.org/wiki/Sl_(UNIX) です。
 - D言語ちゃんは、僕らのヒーローです。
 
 

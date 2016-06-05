@@ -13,9 +13,9 @@ dmd と打ち間違えて smd と入力してしまった時に、スーパー�
 謝辞:
 $(UL
 $(LI smd は D言語で書かれています。 $(LINK2 http://dlang.org/, Digital Mars D Programming Language))
-$(LI 事の始まりは、 $(LINK http://echo.2ch.net/test/read.cgi/tech/1422155249/581)です。)
-$(LI 元ネタは、$(LINK http://qiita.com/mattn/items/b7889e3c036b408ae8bd)です。)
-$(LI 大元ネタは、$(LINK https://ja.wikipedia.org/wiki/Sl_(UNIX))です。)
+$(LI 事の始まりは、 $(LINK http://echo.2ch.net/test/read.cgi/tech/1422155249/581) です。)
+$(LI 元ネタは、$(LINK http://qiita.com/mattn/items/b7889e3c036b408ae8bd) です。)
+$(LI 大元ネタは、$(LINK https://ja.wikipedia.org/wiki/Sl_(UNIX)) です。)
 $(LI D言語ちゃんは、僕らのヒーローです。)
 )
 
