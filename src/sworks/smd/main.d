@@ -57,15 +57,6 @@ import sworks.svg;
 import core.time : Duration;
 debug import std.stdio;
 
-
-int toMsecs(Duration d)
-{
-    int seconds, msecs;
-    d.split!("seconds", "msecs")(seconds, msecs);
-    return seconds * 1000 + msecs;
-}
-
-
 class SMD
 { mixin SingleWindowMix!() SWM;
 
@@ -139,7 +130,7 @@ class SMD
             wnd.redraw;
         }
 
-        auto pastms = past.toMsecs;
+        auto pastms = past.total!"msecs";
         if      (pastms < FADE_DURATION)
         {
             auto r = (cast(float)(pastms)) / (cast(float)(FADE_DURATION));
