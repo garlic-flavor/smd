@@ -32,7 +32,7 @@ $(LI Windows10 x64 + dmd2.071.0 + Visual Studio 2015)
 
 ワナビー:
 $(UL
-$(LI xxx)
+$(LI WS_EX_LAYERED とかすっかり忘れてた。書き直そう。)
 )
 
 
