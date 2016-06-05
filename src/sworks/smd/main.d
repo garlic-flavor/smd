@@ -223,11 +223,10 @@ class SMD
             auto h2 = cast(int)(HEIGHT * s) / 2;
             dPos = POINT(cx - w2, cy - h2);
 
-            SetWindowRgn(wnd.ptr, null, false);
             src.stretchedCopy(resized, dPos.x, dPos.y, dSize);
             auto rgn = CreatePolyPolygonRgn(resized.pointPtr, resized.countPtr,
                                             cast(int)resized.count, ALTERNATE);
-            SetWindowRgn(wnd.ptr, rgn, true);
+            SetWindowRgn(wnd.ptr, rgn, false);
             wnd.redraw;
             DeleteObject(rgn);
         }
